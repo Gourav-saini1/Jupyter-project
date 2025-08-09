@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  hub:
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyterhub
+      args:
+        JUPYTERHUB_VERSION: latest
+    image: jupyterhub
+    container_name: jupyterhub
+    restart: always
+
+    # allow hub to talk to the Podman socket (rootless)
+    user: "0:0"
+    group_add:
+      - "${DOCKER_SOCK_GID}"
+    environment:
+      JUPYTERHUB_ADMIN: admin
+      DOCKER_NETWORK_NAME: "jupyterhub-network"          # <— explicit, no prefixes
+      DOCKER_NOTEBOOK_IMAGE: quay.io/jupyter/base-notebook:latest
+      DOCKER_NOTEBOOK_DIR: /home/jovyan/work
+      DOCKER_HOST: "unix:///var/run/docker.sock"
+
+    volumes:
+      - ./jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py:ro
+      - ${DOCKER_SOCK}:/var/run/docker.sock:rw
+      - jupyterhub-data:/data
+
+    ports:
+      - "8000:8000"
+
+    networks:
+      - jupyterhub-network
+
+volumes:
+  jupyterhub-data:
+
+networks:
+  # keep a fixed, external network so Dockerspawner can join it
+  jupyterhub-network:
+    name: jupyterhub-network
+    driver: bridge
+
