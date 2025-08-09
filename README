@@ -1,0 +1,56 @@
+JupyterHub Deployment on GCP (Using Podman & Podman Compose)
+
+1. Create a VM on Google Cloud Platform (GCP)
+ . Use Ubuntu as the base image.
+ . Allow HTTP and HTTPS traffic.
+ . Create a firewall rule to allow inbound traffic on port 8000 (JupyterHub will run on this port).
+
+2. SSH into the VM and Install Dependencies
+
+ . sudo apt update
+ . sudo apt install git -y
+ . sudo apt install podman -y
+ . sudo apt install podman-compose -y
+
+3. Clone the Project Repository
+ 
+ . git clone https://github.com/Gourav-saini1/Jupyter-project.git
+ . cd Jupyter-project/jupyter-hub/
+
+
+4. Start JupyterHub with Podman Compose
+
+ . podman-compose up -d
+ . podman ps   "this will show you up container"
+
+Then open your browser and go to:
+http://<SERVER_EXTERNAL_IP>:8000
+
+Note: At this stage, the application will load but you may encounter a 500 Internal Server Error when starting the Jupyter server.
+
+
+5. Fixing the 500 Internal Server Error
+
+ . export DOCKER_SOCK=/run/user/1001/podman/podman.sock
+ . export DOCKER_SOCK_GID=$(stat -c '%g' "$DOCKER_SOCK")
+ . systemctl --user enable --now podman.socket
+ . systemctl --user start --now podman.socket
+
+6. Restart JupyterHub
+
+ . podman-compose down
+ . podman-compose up -d
+
+7. Access the Application
+
+http://<SERVER_EXTERNAL_IP>:8000
+Now JupyterHub and the Jupyter server should work without issues.
+
+
+
+
+
+
+
+
+
